@@ -3,23 +3,29 @@ import random
 from functions.get_files_info import get_files_info
 from functions.get_file_content import get_file_content
 from functions.write_file import write_file
+from functions.run_python_file import run_python_file
 
-if os.path.exists(os.path.abspath("calculator/pkg/morelorem.txt")):
-    print(f"Deleting morelorem.txt before testing")
-    os.remove("./calculator/pkg/morelorem.txt")
 
-print(f'test1: write_file("calculator", "lorem.txt", "wait, this isn\'t lorem ipsum")')
-print(write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum"))
-print("\n-----\n")
+print(f"Test1: should print the calculator's usage instructions")
+print(f'{run_python_file("calculator", "main.py")}')
+print(f"\n-----\n")
 
-print(f'test2: write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet")')
-print(write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet"))
-print("\n-----\n")
+print(f"Test2: should run the calculator... which gives a kinda nasty rendered result")
+print(f'{run_python_file("calculator", "main.py", ["3 + 5"])}')
+print(f"\n-----\n")
 
-print(f'test3: write_file("calculator", "/tmp/temp.txt", "this should not be allowed")')
-print(write_file("calculator", "/tmp/temp.txt", "this should not be allowed"))
-print("\n-----\n")
+print(f"Test3: should run the calculator's test script")
+print(f'{run_python_file("calculator", "tests.py")}')
+print(f"\n-----\n")
 
-print(f'test4: write_file("calculator", "pkg/morelorem.txt", "Something else entirely") when file already exists')
-print(write_file("calculator", "pkg/morelorem.txt", "Something else entirely"))
-print("\n-----\n")
+print(f"Test4: should return an error")
+print(f'{run_python_file("calculator", "../main.py")}')
+print(f"\n-----\n")
+
+print(f"Test5: should return an error")
+print(f'{run_python_file("calculator", "nonexistent.py")}')
+print(f"\n-----\n")
+
+print(f"Test6: should return an error")
+print(f'{run_python_file("calculator", "lorem.txt")}')
+
