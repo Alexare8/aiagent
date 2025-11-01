@@ -21,7 +21,7 @@ def call_function(function_call_part, verbose=False):
     args = dict(function_call_part.args)
 
     if verbose:
-        print(f" - Calling function: {function_name}({**args})")
+        print(f" - Calling function: {function_name}({args.items()})")
     else:
         print(f" - Calling function: {function_name}")
     
