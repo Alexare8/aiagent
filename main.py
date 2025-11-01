@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 from prompts import system_prompt
 from call_function import call_function, available_functions
-
+from config import MAX_ITERS
 
 def main():
     load_dotenv()
@@ -30,9 +30,23 @@ def main():
     if verbose:
         print(f"User prompt: {user_prompt}\n")
 
-    messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)])]
+    messages = [types.Content(role="user", parts=[types.Part(text=user_prompt)]),]
 
-    generate_content(client, messages, verbose)
+    iteration = 0
+    while True:
+        iteration += 1
+        if iteration > MAX_ITERS:
+            print(f"Maximum iterations ({MAX_ITERS}) reached.")
+            sys.exit(1)
+
+        try:
+            final_response = generate_content(client, messages, verbose)
+            if final_response:
+                print("Final response:")
+                print(final_response)
+                break                    
+        except Exception as e:
+            raise Exception from e
 
 
 def generate_content(client, messages, verbose):
@@ -43,10 +57,14 @@ def generate_content(client, messages, verbose):
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
-    if not response.function_calls:
-        return resonse.text
+    if response.candidates:
+        for candidate in response.candidates:
+            messages.append(candidate.content)
 
-    function_responses = []
+    if not response.function_calls:
+        return response.text
+
+    function_responses = [] 
     for function_call_part in response.function_calls:
         function_call_result = call_function(function_call_part, verbose)
         if (
@@ -60,6 +78,8 @@ def generate_content(client, messages, verbose):
     
     if not function_responses:
         raise Exception("no function responses generated, exiting.")
+
+    messages.append(types.Content(role="user", parts=function_responses))
 
 
 if __name__ == "__main__":
