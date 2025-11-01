@@ -1,22 +1,25 @@
 import os
 from google.genai import types
-from functions.sanitize_path import sanitize_path
+
 
 def get_files_info(working_directory, directory="."):
-    try:
-        path_name = sanitize_path(working_directory, directory)
-    except PermissionError as e:
-        return e.args[0]
-
-    if not os.path.isdir(path_name):
+    abs_working_dir = os.path.abspath(working_directory)
+    target_dir = os.path.abspath(os.path.join(working_directory, directory))
+    if not target_dir.startswith(abs_working_dir):
+        return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
+    if not os.path.isdir(target_dir):
         return f'Error: "{directory}" is not a directory'
     
-    file_descriptions = []
-    for file in os.listdir(path_name):
-        file_path = os.path.join(path_name, file)
-        file_descriptions.append(f" - {file}: file_size={os.path.getsize(file_path)} bytes, is_dir={os.path.isdir(file_path)}")
+    try:
+        files_info = []
+        for file in os.listdir(target_dir):
+            file_path = os.path.join(target_dir, file)
+            files_info.append(f" - {file}: file_size={os.path.getsize(file_path)} bytes, is_dir={os.path.isdir(file_path)}")
 
-    return "\n".join(file_descriptions)
+        return "\n".join(files_info)
+    except Exception as e:
+        return f"Error listing files: {e}"
+
 
 schema_get_files_info = types.FunctionDeclaration(
     name="get_files_info",
