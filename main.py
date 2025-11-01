@@ -53,16 +53,22 @@ def generate_content(client, messages, verbose):
     config = genai.types.GenerateContentConfig(system_instruction=system_prompt, tools=[available_functions])
     response = client.models.generate_content(model="gemini-2.0-flash-001", contents=messages, config=config)
 
+    # Show the full response, incase I need to read it
+    # print(response.model_dump_json(indent=2))
+
     if verbose:
         print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
         print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
+    if not response.function_calls:
+        return response.text
+
     if response.candidates:
         for candidate in response.candidates:
             messages.append(candidate.content)
-
-    if not response.function_calls:
-        return response.text
+            for part in candidate.content.parts:
+                if part.text:
+                    print(part.text)
 
     function_responses = [] 
     for function_call_part in response.function_calls:
